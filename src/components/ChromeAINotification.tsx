@@ -5,6 +5,15 @@ let hasShownNotification = false;
 
 const ChromeAINotification = () => {
   useEffect(() => {
+    // If any cloud AI key (Grok, OpenAI, Anthropic, Gemini) is configured, Chrome on-device AI is optional
+    const hasCloudAI = Boolean(
+      import.meta.env.VITE_GROK_API_KEY ||
+      import.meta.env.VITE_OPENAI_API_KEY ||
+      import.meta.env.VITE_ANTHROPIC_API_KEY ||
+      import.meta.env.VITE_GEMINI_API_KEY
+    );
+
+    if (hasCloudAI) return;
     if (hasShownNotification) return;
     
     const showNotification = () => {
@@ -14,52 +23,40 @@ const ChromeAINotification = () => {
           <div
             className={`${
               t.visible ? 'animate-enter' : 'animate-leave'
-            } max-w-md w-full bg-gradient-to-r from-indigo-600 via-blue-600 to-purple-600 shadow-2xl rounded-lg pointer-events-auto relative overflow-hidden`}
+            } max-w-md w-full bg-black/85 backdrop-blur-2xl border border-white/20 shadow-2xl rounded-2xl pointer-events-auto relative overflow-hidden p-5 transition-all`}
           >
-            {/* Neural network pattern background */}
-            <div className="absolute inset-0 opacity-10">
-              <svg className="w-full h-full" viewBox="0 0 100 100">
-                <pattern id="neural-pattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
-                  <circle cx="2" cy="2" r="1" fill="white" />
-                  <line x1="2" y1="2" x2="18" y2="18" stroke="white" strokeWidth="0.5" />
-                  <circle cx="18" cy="18" r="1" fill="white" />
-                </pattern>
-                <rect x="0" y="0" width="100" height="100" fill="url(#neural-pattern)" />
-              </svg>
-            </div>
-
-            {/* Glowing effect */}
-            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-lg blur-xl opacity-20 animate-pulse"></div>
+            {/* Subtle glow effect */}
+            <div className="absolute -inset-1 bg-gradient-to-r from-white/10 via-white/5 to-transparent rounded-2xl blur-lg opacity-40 pointer-events-none"></div>
 
             {/* Close button */}
-            <div 
+            <button 
+              type="button"
               onClick={() => toast.dismiss(t.id)}
-              className="absolute top-3 right-3 cursor-pointer z-20"
+              className="absolute top-3.5 right-3.5 z-20 w-7 h-7 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-all border border-white/10"
+              aria-label="Close notification"
             >
-              <div className="text-blue-100 w-6 h-6 flex items-center justify-center">
-                <span className="text-lg font-light">×</span>
-              </div>
-            </div>
+              <span className="text-sm font-light">✕</span>
+            </button>
 
             {/* Content */}
-            <div className="p-4 relative z-10">
+            <div className="relative z-10">
               <div className="flex flex-col">
                 <div className="flex items-center">
-                  <p className="text-lg font-semibold text-white flex items-center">
-                    <span className="mr-2">🤖</span>
+                  <p className="text-base font-semibold text-white flex items-center tracking-tight">
+                    <span className="mr-2 text-lg">🤖</span>
                     Chrome AI Feature Required
                   </p>
                 </div>
-                <p className="mt-2 text-sm text-blue-100 leading-relaxed">
-                  This experimental project requires Chrome's built-in AI capabilities. 
+                <p className="mt-2 text-sm text-white/70 leading-relaxed">
+                  This experimental project requires Chrome's built-in AI capabilities or cloud API keys in your .env. 
                   Please use <span className="font-semibold text-white">Chrome Canary</span> or 
                   <span className="font-semibold text-white"> Chrome Dev</span> with AI features enabled.
                 </p>
-                <div className="mt-3 flex items-center text-xs text-blue-200">
-                  <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="mt-3 flex items-center text-xs text-white/50">
+                  <svg className="w-4 h-4 mr-1.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  Standard Chrome browsers are not supported
+                  Standard Chrome browsers are not supported without API keys
                 </div>
               </div>
             </div>

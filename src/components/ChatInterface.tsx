@@ -1,9 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, UploadCloud, Copy, Check, Download, Trash2, Share2 } from 'lucide-react';
+import { Send, Bot, User, UploadCloud, Download, Trash2, Share2, Check, Copy } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { AIChatService } from '../services/aiService';
-import { ChatMessage } from '../types/chat';
+import { ChatMessage, AIProviderId } from '../types/chat';
+
+const CTA_GRADIENT = {
+  background: "linear-gradient(to bottom, #2B2B2B, #101010)",
+};
 
 interface ChatInterfaceProps {
   extractedText: string;
@@ -21,6 +25,13 @@ export default function ChatInterface({ extractedText, onRestart }: ChatInterfac
   const [isTyping, setIsTyping] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [aiService] = useState(() => new AIChatService(extractedText));
+  const [selectedProvider, setSelectedProvider] = useState<AIProviderId>('auto');
+  const availableProviders = aiService.getAvailableProviders();
+
+  const handleProviderChange = (newProvider: AIProviderId) => {
+    setSelectedProvider(newProvider);
+    aiService.setProvider(newProvider);
+  };
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
@@ -148,43 +159,57 @@ export default function ChatInterface({ extractedText, onRestart }: ChatInterfac
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-3rem)] max-w-4xl mx-auto bg-dark-800/95 rounded-xl border border-dark-700/50 shadow-2xl overflow-hidden backdrop-blur-sm">
-      <div className="p-4 border-b border-dark-700/50 bg-gradient-to-r from-dark-800 to-dark-800/95 backdrop-blur supports-[backdrop-filter]:bg-dark-800/80">
-        <div className="flex justify-between items-center">
+    <div className="flex flex-col h-[calc(100vh-4rem)] max-w-4xl mx-auto bg-black/70 backdrop-blur-2xl rounded-3xl border border-white/15 shadow-2xl overflow-hidden">
+      {/* Header */}
+      <div className="p-4 sm:px-6 border-b border-white/10 bg-white/[0.03] backdrop-blur-md">
+        <div className="flex justify-between items-center gap-4">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-gradient-to-br from-dark-700 to-dark-600 rounded-xl shadow-lg">
-              <Bot className="w-5 h-5 text-blue-400" />
+            <div className="p-2.5 bg-white/10 rounded-2xl border border-white/10 shadow-inner">
+              <Bot className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-dark-50">AI PDF Chat Assistant</h2>
-              <p className="text-sm text-dark-400">Ask questions about your document</p>
+              <h2 className="text-base sm:text-lg font-semibold tracking-tight text-white">AI PDF Chat Assistant</h2>
+              <p className="text-xs sm:text-sm text-white/60">Ask questions about your document</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <select
+              value={selectedProvider}
+              onChange={(e) => handleProviderChange(e.target.value as AIProviderId)}
+              className="text-xs bg-white/10 hover:bg-white/15 text-white/90 border border-white/15 rounded-full px-2.5 sm:px-3 py-1.5 focus:outline-none backdrop-blur-md cursor-pointer transition-all mr-1"
+              title="Active AI Provider / Redundancy Mode"
+            >
+              {availableProviders.map((p) => (
+                <option key={p.id} value={p.id} className="bg-neutral-900 text-white">
+                  {p.name} {p.available ? '' : '(no key)'}
+                </option>
+              ))}
+            </select>
             <button
               onClick={exportChat}
-              className="p-2.5 text-dark-200 hover:text-blue-400 bg-dark-700 hover:bg-dark-600 rounded-xl transition-all duration-200 shadow-lg hover:shadow-blue-500/10"
+              className="p-2 sm:p-2.5 text-white/70 hover:text-white bg-white/10 hover:bg-white/15 border border-white/10 rounded-full transition-all"
               title="Export chat"
             >
               <Download className="w-4 h-4" />
             </button>
             <button
               onClick={shareChat}
-              className="p-2.5 text-dark-200 hover:text-purple-400 bg-dark-700 hover:bg-dark-600 rounded-xl transition-all duration-200 shadow-lg hover:shadow-purple-500/10"
+              className="p-2 sm:p-2.5 text-white/70 hover:text-white bg-white/10 hover:bg-white/15 border border-white/10 rounded-full transition-all"
               title="Share chat"
             >
               <Share2 className="w-4 h-4" />
             </button>
             <button
               onClick={clearChat}
-              className="p-2.5 text-dark-200 hover:text-pink-400 bg-dark-700 hover:bg-dark-600 rounded-xl transition-all duration-200 shadow-lg hover:shadow-pink-500/10"
+              className="p-2 sm:p-2.5 text-white/70 hover:text-white bg-white/10 hover:bg-white/15 border border-white/10 rounded-full transition-all"
               title="Clear chat"
             >
               <Trash2 className="w-4 h-4" />
             </button>
             <button
               onClick={onRestart}
-              className="flex items-center gap-2 px-4 py-2.5 text-sm text-dark-200 hover:text-dark-50 bg-dark-700 hover:bg-dark-600 rounded-xl transition-all duration-200 ml-2 shadow-lg"
+              className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-white rounded-full transition-opacity hover:opacity-90 ml-1 border border-white/15 shadow-md"
+              style={CTA_GRADIENT}
             >
               <UploadCloud className="w-4 h-4" />
               <span>New PDF</span>
@@ -193,8 +218,9 @@ export default function ChatInterface({ extractedText, onRestart }: ChatInterfac
         </div>
       </div>
 
+      {/* Messages */}
       <div 
-        className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar relative bg-gradient-to-b from-dark-900/50 to-dark-800/50"
+        className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 custom-scrollbar relative bg-transparent"
         onScroll={handleScroll}
       >
         {messages.map((message) => (
@@ -205,47 +231,47 @@ export default function ChatInterface({ extractedText, onRestart }: ChatInterfac
             }`}
           >
             <div
-              className={`flex-shrink-0 p-2.5 rounded-xl shadow-lg ${
+              className={`flex-shrink-0 p-2 rounded-full border shadow-md ${
                 message.type === 'user' 
-                  ? 'bg-gradient-to-br from-blue-500/20 to-purple-500/20' 
-                  : 'bg-gradient-to-br from-dark-700 to-dark-600'
+                  ? 'bg-white/20 border-white/25 text-white' 
+                  : 'bg-white/10 border-white/15 text-white'
               }`}
             >
               {message.type === 'user' ? (
-                <User className="w-5 h-5 text-white" />
+                <User className="w-4 h-4" />
               ) : (
-                <Bot className="w-5 h-5 text-white" />
+                <Bot className="w-4 h-4" />
               )}
             </div>
-            <div className="flex-1 max-w-[80%] group">
+            <div className="flex-1 max-w-[85%] sm:max-w-[80%] group">
               <div
-                className={`p-4 rounded-2xl message-hover relative shadow-lg ${
+                className={`p-4 sm:p-5 rounded-2xl relative shadow-lg ${
                   message.type === 'user'
-                    ? 'bg-gradient-to-r from-blue-500/10 to-purple-500/10 ml-auto border border-blue-500/10'
-                    : 'bg-gradient-to-r from-dark-700/50 to-dark-600/50 border border-dark-600/10'
+                    ? 'bg-white/15 backdrop-blur-md text-white border border-white/20 ml-auto'
+                    : 'bg-white/[0.05] backdrop-blur-md text-white/95 border border-white/10'
                 }`}
               >
-                <div className="prose prose-invert max-w-none">
+                <div className="prose prose-invert max-w-none text-sm sm:text-base leading-relaxed">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
                     {message.content}
                   </ReactMarkdown>
                 </div>
                 <button
                   onClick={() => handleCopyMessage(message.content, message.id)}
-                  className={`absolute top-2 right-2 p-1.5 rounded-lg bg-dark-800/90 opacity-0 group-hover:opacity-100 transition-all duration-200 ${
-                    copiedId === message.id ? 'text-green-400' : 'text-dark-200 hover:text-blue-400'
+                  className={`absolute top-2.5 right-2.5 p-1.5 rounded-lg bg-black/60 hover:bg-black/90 border border-white/10 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all ${
+                    copiedId === message.id ? 'text-emerald-400' : 'text-white/70 hover:text-white'
                   }`}
                   aria-label={copiedId === message.id ? "Copied!" : "Copy message"}
                 >
                   {copiedId === message.id ? (
-                    <Check className="w-4 h-4" />
+                    <Check className="w-3.5 h-3.5" />
                   ) : (
-                    <Copy className="w-4 h-4" />
+                    <Copy className="w-3.5 h-3.5" />
                   )}
                 </button>
               </div>
               <div
-                className={`text-xs text-dark-400 mt-2 ${
+                className={`text-[11px] text-white/40 mt-1.5 px-1 ${
                   message.type === 'user' ? 'text-right' : 'text-left'
                 }`}
               >
@@ -256,14 +282,14 @@ export default function ChatInterface({ extractedText, onRestart }: ChatInterfac
         ))}
         {isTyping && (
           <div className="flex items-start gap-3">
-            <div className="p-2.5 bg-gradient-to-br from-dark-700 to-dark-600 rounded-xl shadow-lg">
-              <Bot className="w-5 h-5 text-purple-400" />
+            <div className="p-2 rounded-full bg-white/10 border border-white/15 text-white shadow-md">
+              <Bot className="w-4 h-4" />
             </div>
-            <div className="p-4 bg-gradient-to-r from-dark-700/50 to-dark-600/50 rounded-2xl shadow-lg border border-dark-600/10">
+            <div className="p-4 bg-white/[0.05] backdrop-blur-md rounded-2xl border border-white/10">
               <div className="typing-indicator flex gap-1.5">
-                <span className="bg-dark-400"></span>
-                <span className="bg-dark-400"></span>
-                <span className="bg-dark-400"></span>
+                <span></span>
+                <span></span>
+                <span></span>
               </div>
             </div>
           </div>
@@ -271,7 +297,8 @@ export default function ChatInterface({ extractedText, onRestart }: ChatInterfac
         {showScrollButton && (
           <button
             onClick={scrollToBottom}
-            className="fixed bottom-24 right-8 p-3 bg-gradient-to-br from-dark-700 to-dark-600 rounded-xl shadow-lg text-dark-200 hover:text-blue-400 transition-all duration-200 hover:shadow-blue-500/10"
+            className="fixed bottom-24 right-8 p-3 bg-black/80 backdrop-blur-xl border border-white/20 rounded-full shadow-2xl text-white/80 hover:text-white transition-all hover:scale-105"
+            aria-label="Scroll to bottom"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
@@ -281,7 +308,8 @@ export default function ChatInterface({ extractedText, onRestart }: ChatInterfac
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="flex-none p-4 border-t border-dark-700/50 bg-gradient-to-r from-dark-800 to-dark-800/95 backdrop-blur supports-[backdrop-filter]:bg-dark-800/80">
+      {/* Input Area */}
+      <div className="flex-none p-4 sm:p-5 border-t border-white/10 bg-black/70 backdrop-blur-xl">
         <form onSubmit={handleSubmit} className="relative">
           <textarea
             ref={inputRef}
@@ -293,19 +321,21 @@ export default function ChatInterface({ extractedText, onRestart }: ChatInterfac
             }}
             onKeyDown={handleKeyDown}
             placeholder="Ask a question about your PDF..."
-            className="w-full p-4 pr-12 bg-dark-700 border border-dark-600/50 rounded-xl text-dark-50 placeholder-dark-400 focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/10 resize-none max-h-[200px] overflow-y-hidden transition-all duration-200"
+            className="w-full p-4 pr-14 bg-white/[0.06] border border-white/15 focus:border-white/35 rounded-2xl text-white placeholder-white/40 focus:outline-none transition-all resize-none max-h-[200px] overflow-y-hidden text-sm sm:text-base leading-relaxed"
             maxLength={2000}
-            style={{ minHeight: '52px' }}
+            style={{ minHeight: '54px' }}
           />
           <button
             type="submit"
-            className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-dark-200 hover:text-blue-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+            className="absolute right-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full text-white transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed border border-white/15 shadow-md"
+            style={CTA_GRADIENT}
             disabled={!input.trim()}
+            aria-label="Send message"
           >
-            <Send className="w-5 h-5" />
+            <Send className="w-4 h-4" />
           </button>
         </form>
-        <div className="mt-2 text-xs text-dark-400 flex justify-between px-1">
+        <div className="mt-2 text-xs text-white/40 flex justify-between px-2">
           <span>Press Enter to send, Shift + Enter for new line</span>
           <span>{input.length} / 2000</span>
         </div>

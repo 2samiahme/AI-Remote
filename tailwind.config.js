@@ -21,7 +21,8 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Geist', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        silkscreen: ['Silkscreen', 'cursive'],
       },
       typography: {
         DEFAULT: {
@@ -40,7 +41,7 @@ export default {
               color: '#f7f7f8',
             },
             pre: {
-              backgroundColor: '#40414f',
+              backgroundColor: '#1f1f23',
               color: '#f7f7f8',
             },
           },

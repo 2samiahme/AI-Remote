@@ -11,32 +11,32 @@ interface MessageActionsProps {
 
 export default function MessageActions({ content, id, copiedId, onCopy, onFeedback }: MessageActionsProps) {
   return (
-    <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+    <div className="absolute top-3 right-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
       <button
         onClick={() => onFeedback(id, 'like')}
-        className="p-1.5 rounded-lg bg-dark-800/80 text-dark-200 hover:text-dark-50 transition-colors duration-200"
+        className="p-1.5 rounded-lg bg-black/60 hover:bg-black/90 text-white/70 hover:text-white border border-white/10 backdrop-blur-md transition-all"
         title="Helpful response"
       >
-        <ThumbsUp className="w-4 h-4" />
+        <ThumbsUp className="w-3.5 h-3.5" />
       </button>
       <button
         onClick={() => onFeedback(id, 'dislike')}
-        className="p-1.5 rounded-lg bg-dark-800/80 text-dark-200 hover:text-dark-50 transition-colors duration-200"
+        className="p-1.5 rounded-lg bg-black/60 hover:bg-black/90 text-white/70 hover:text-white border border-white/10 backdrop-blur-md transition-all"
         title="Not helpful"
       >
-        <ThumbsDown className="w-4 h-4" />
+        <ThumbsDown className="w-3.5 h-3.5" />
       </button>
       <button
         onClick={() => onCopy(content, id)}
-        className={`p-1.5 rounded-lg bg-dark-800/80 transition-colors duration-200 ${
-          copiedId === id ? 'text-green-400' : 'text-dark-200 hover:text-dark-50'
+        className={`p-1.5 rounded-lg bg-black/60 hover:bg-black/90 border border-white/10 backdrop-blur-md transition-all ${
+          copiedId === id ? 'text-emerald-400' : 'text-white/70 hover:text-white'
         }`}
         title={copiedId === id ? "Copied!" : "Copy message"}
       >
         {copiedId === id ? (
-          <Check className="w-4 h-4" />
+          <Check className="w-3.5 h-3.5" />
         ) : (
-          <Copy className="w-4 h-4" />
+          <Copy className="w-3.5 h-3.5" />
         )}
       </button>
     </div>
